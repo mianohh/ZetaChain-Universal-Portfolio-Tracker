@@ -9,16 +9,16 @@ class PortfolioTracker {
         this.contract = null;
         this.userAddress = null;
         
-        // Contract configuration
-        this.CONTRACT_ADDRESS = "0x2398C02218e5aa5b759f511F3DD56283fDBb5497"; // ZetaChain testnet contract
+        // Contract configuration - AUTO-UPDATED FROM DEPLOYMENT
+        this.CONTRACT_ADDRESS = "0x2398C02218e5aa5b759f511F3DD56283fDBb5497"; // AUTO-GENERATED - DO NOT EDIT MANUALLY
         this.GATEWAY_ADDRESS = "0x6c533f7fe93fae114d0954697069df33c9b74fd7";
         
         // Extended ABI with Universal NFT functions
         this.CONTRACT_ABI = [
             "function deposit(uint256 amount) external payable",
             "function withdrawAndTrack(uint256 positionId, uint256 destinationChainId, address destinationAddress, uint256 gasLimit) external payable",
-            "function getPosition(address user, uint256 positionId) external view returns (tuple(uint256 amount, address user, uint256 timestamp, uint8 status, bytes32 crossChainTxHash, uint256 destinationChainId))",
-            "function getUserPositions(address user) external view returns (tuple(uint256 amount, address user, uint256 timestamp, uint8 status, bytes32 crossChainTxHash, uint256 destinationChainId)[])",
+            "function getPosition(address user, uint256 positionId) external view returns (tuple(uint256 amount, address user, uint256 timestamp, uint8 status, bytes32 crossChainTxHash))",
+            "function getUserPositions(address user) external view returns (tuple(uint256 amount, address user, uint256 timestamp, uint8 status, bytes32 crossChainTxHash)[])",
             "function estimateWithdrawGas(uint256 gasLimit) external view returns (uint256 baseGas, uint256 withPremium)",
             // Universal NFT Functions
             "function hasUsedSafetyBuffer(address user) external view returns (bool)",
@@ -29,8 +29,6 @@ class PortfolioTracker {
             "function ownerOf(uint256 tokenId) external view returns (address)",
             "function tokenURI(uint256 tokenId) external view returns (string)",
             // Additional View Functions
-            "function getPositionCount(address user) external view returns (uint256)",
-            "function totalDeposited(address user) external view returns (uint256)",
             "function gateway() external view returns (address)",
             // Emergency Functions
             "function emergencyWithdraw(uint256 positionId) external",
@@ -46,23 +44,42 @@ class PortfolioTracker {
     }
     
     async init() {
-        this.setupEventListeners();
-        await this.checkWalletConnection();
+        try {
+            console.log('Initializing PortfolioTracker...');
+            this.setupEventListeners();
+            console.log('Event listeners setup complete');
+            await this.checkWalletConnection();
+            console.log('Wallet connection check complete');
+        } catch (error) {
+            console.error('Initialization error:', error);
+        }
     }
     
     setupEventListeners() {
-        document.getElementById('connectWallet').addEventListener('click', () => this.connectWallet());
-        document.getElementById('depositBtn').addEventListener('click', () => this.createPosition());
-        document.getElementById('withdrawBtn').addEventListener('click', () => this.withdrawPosition());
-        document.getElementById('gasLimit').addEventListener('input', () => this.updateGasEstimate());
-        document.getElementById('positionSelect').addEventListener('change', () => this.updateGasEstimate());
-        
-        // Universal NFT event listeners
-        document.getElementById('mintBadgeBtn').addEventListener('click', () => this.mintSafetyBadge());
-        document.getElementById('transferBadgeBtn').addEventListener('click', () => this.transferBadge());
-        document.getElementById('transferChain').addEventListener('change', (e) => {
-            document.getElementById('transferBadgeBtn').disabled = !e.target.value;
-        });
+        try {
+            document.getElementById('connectWallet').addEventListener('click', () => this.connectWallet());
+            document.getElementById('depositBtn').addEventListener('click', () => this.createPosition());
+            document.getElementById('withdrawBtn').addEventListener('click', () => this.withdrawPosition());
+            document.getElementById('gasLimit').addEventListener('input', () => this.updateGasEstimate());
+            document.getElementById('positionSelect').addEventListener('change', () => this.updateGasEstimate());
+            
+            // Universal NFT event listeners
+            document.getElementById('mintBadgeBtn').addEventListener('click', () => this.mintSafetyBadge());
+            document.getElementById('transferBadgeBtn').addEventListener('click', () => this.transferBadge());
+            document.getElementById('transferChain').addEventListener('change', (e) => {
+                document.getElementById('transferBadgeBtn').disabled = !e.target.value;
+            });
+            
+            // Add refresh button listener
+            const refreshBtn = document.getElementById('refreshPositions');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => this.forceRefresh());
+            }
+            
+            console.log('All event listeners attached successfully');
+        } catch (error) {
+            console.error('Error setting up event listeners:', error);
+        }
     }
     
     async checkWalletConnection() {
@@ -86,7 +103,15 @@ class PortfolioTracker {
             }
             
             if (!this.CONTRACT_ADDRESS || this.CONTRACT_ADDRESS === "") {
-                this.showError('Contract not deployed yet. Please deploy the contract first and update CONTRACT_ADDRESS in app.js');
+                this.showError('Contract not deployed yet. Run: npm run deploy:universal');
+                return;
+            }
+            
+            // Verify contract exists
+            const tempProvider = new ethers.providers.Web3Provider(window.ethereum);
+            const code = await tempProvider.getCode(this.CONTRACT_ADDRESS);
+            if (code === '0x') {
+                this.showError(`Contract not found at ${this.CONTRACT_ADDRESS}. Please redeploy: npm run deploy:universal`);
                 return;
             }
             
@@ -200,6 +225,11 @@ class PortfolioTracker {
             this.showSuccess('Position created successfully!');
             document.getElementById('depositAmount').value = '';
             
+            // Wait a moment for blockchain state to update
+            console.log('Waiting for blockchain state update...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            console.log('Reloading positions...');
             await this.loadPositions();
             await this.loadUserStats();
             await this.updateWalletInfo();
@@ -233,12 +263,13 @@ class PortfolioTracker {
         try {
             if (!this.contract || !this.userAddress) return;
             
-            const positionCount = await this.contract.getPositionCount(this.userAddress);
-            const totalDeposited = await this.contract.totalDeposited(this.userAddress);
+            const positions = await this.contract.getUserPositions(this.userAddress);
+            const activeCount = positions.filter(p => p.status === 0).length;
+            const totalDep = positions.reduce((sum, p) => sum.add(p.amount), ethers.BigNumber.from(0));
             
-            document.getElementById('positionCount').textContent = positionCount.toString();
+            document.getElementById('positionCount').textContent = activeCount.toString();
             document.getElementById('totalDeposited').textContent = 
-                `${ethers.utils.formatEther(totalDeposited)} ZETA`;
+                `${ethers.utils.formatEther(totalDep)} ZETA`;
                 
         } catch (error) {
             console.error('Error loading user stats:', error);
@@ -247,14 +278,34 @@ class PortfolioTracker {
     
     async loadPositions() {
         try {
-            if (!this.contract || !this.userAddress) return;
+            if (!this.contract || !this.userAddress) {
+                console.log('Cannot load positions: contract or address missing');
+                return;
+            }
+            
+            console.log('Loading positions for:', this.userAddress);
+            console.log('Contract address:', this.CONTRACT_ADDRESS);
             
             const positions = await this.contract.getUserPositions(this.userAddress);
+            console.log('Positions loaded:', positions.length, positions);
+            
+            // Log each position
+            positions.forEach((pos, i) => {
+                console.log(`Position ${i}:`, {
+                    amount: ethers.utils.formatEther(pos.amount),
+                    user: pos.user,
+                    status: pos.status,
+                    timestamp: new Date(pos.timestamp * 1000).toLocaleString()
+                });
+            });
+            
             this.displayPositions(positions);
             this.updatePositionSelect(positions);
             
         } catch (error) {
             console.error('Error loading positions:', error);
+            console.error('Error details:', error.message);
+            this.showError('Failed to load positions: ' + error.message);
         }
     }
     
@@ -451,7 +502,10 @@ class PortfolioTracker {
             const tx = await this.contract.mintSafetyBadge();
             await tx.wait();
             
-            this.showSuccess('🎉 Safety Badge NFT minted successfully! You can now transfer it to any chain.');
+            // Download NFT image
+            await this.downloadNFTImage();
+            
+            this.showSuccess('🎉 Safety Badge NFT minted successfully! Image downloaded to your device.');
             this.addTransactionStatus(tx.hash, 'Safety Badge Minted');
             
             await this.checkBadgeEligibility();
@@ -461,6 +515,36 @@ class PortfolioTracker {
             this.showError('Failed to mint badge: ' + error.message);
         } finally {
             this.hideLoading();
+        }
+    }
+    
+    /**
+     * Download NFT image to user's device
+     */
+    async downloadNFTImage() {
+        try {
+            const badgeTokenId = await this.contract.getUserBadge(this.userAddress);
+            const tokenURI = await this.contract.tokenURI(badgeTokenId);
+            
+            // Parse JSON metadata
+            const jsonData = tokenURI.replace('data:application/json;utf8,', '');
+            const metadata = JSON.parse(jsonData);
+            const imageUrl = metadata.image;
+            
+            // Fetch and download image
+            const response = await fetch(imageUrl);
+            const blob = await response.blob();
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `zetachain-safety-badge-${badgeTokenId}.svg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+            
+        } catch (error) {
+            console.error('Error downloading NFT image:', error);
         }
     }
     
@@ -508,6 +592,23 @@ class PortfolioTracker {
     }
     
     // ============ UTILITY FUNCTIONS ============
+    
+    async forceRefresh() {
+        console.log('Force refreshing all data...');
+        this.showLoading('Refreshing...');
+        try {
+            await this.loadPositions();
+            await this.loadUserStats();
+            await this.updateWalletInfo();
+            await this.checkBadgeEligibility();
+            this.showSuccess('Data refreshed!');
+        } catch (error) {
+            console.error('Refresh error:', error);
+            this.showError('Refresh failed: ' + error.message);
+        } finally {
+            this.hideLoading();
+        }
+    }
     
     addTransactionStatus(txHash, status) {
         const container = document.getElementById('statusContainer');
@@ -562,7 +663,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function initApp() {
         if (typeof ethers !== 'undefined') {
             console.log('Initializing Universal Portfolio Tracker...');
-            new PortfolioTracker();
+            window.tracker = new PortfolioTracker();
+            console.log('Tracker instance available as window.tracker');
         } else {
             console.log('Waiting for ethers.js to load...');
             setTimeout(initApp, 100);
@@ -570,3 +672,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     initApp();
 });
+
+// Debug helper
+window.debugPositions = async function() {
+    if (!window.tracker || !window.tracker.contract) {
+        console.error('Tracker not initialized or wallet not connected');
+        return;
+    }
+    
+    console.log('=== DEBUG INFO ===');
+    console.log('User Address:', window.tracker.userAddress);
+    console.log('Contract Address:', window.tracker.CONTRACT_ADDRESS);
+    
+    try {
+        const count = await window.tracker.contract.getPositionCount(window.tracker.userAddress);
+        console.log('Position Count:', count.toString());
+        
+        const positions = await window.tracker.contract.getUserPositions(window.tracker.userAddress);
+        console.log('Raw Positions:', positions);
+        
+        positions.forEach((pos, i) => {
+            console.log(`Position ${i}:`, {
+                amount: ethers.utils.formatEther(pos.amount),
+                user: pos.user,
+                status: pos.status,
+                timestamp: pos.timestamp.toString()
+            });
+        });
+    } catch (error) {
+        console.error('Debug error:', error);
+    }
+};
