@@ -1,0 +1,51 @@
+{
+  "name": "zetachain-universal-portfolio-tracker",
+  "version": "1.0.0",
+  "description": "Universal App for cross-chain portfolio management with Gateway integration on ZetaChain",
+  "main": "index.html",
+  "scripts": {
+    "deploy": "npx hardhat run deploy.js --network zetachainAthens",
+    "deploy:zeta": "npx hardhat run deploy-testnet.js --network zetachainAthens",
+    "deploy:universal": "npx hardhat run deploy-universal.js --network zetachainAthens",
+    "deploy:universal:sepolia": "npx hardhat run deploy-universal.js --network sepolia",
+    "deploy:universal:bsc": "npx hardhat run deploy-universal.js --network bscTestnet",
+    "deploy:universal:mumbai": "npx hardhat run deploy-universal.js --network mumbai",
+    "deploy:sepolia": "npx hardhat run deploy-testnet.js --network sepolia",
+    "deploy:bsc": "npx hardhat run deploy-testnet.js --network bscTestnet",
+    "deploy:mumbai": "npx hardhat run deploy-testnet.js --network mumbai",
+    "test:zeta": "npx hardhat run test-testnet-functions.js --network zetachainAthens",
+    "test:sepolia": "npx hardhat run test-testnet-functions.js --network sepolia",
+    "test:bsc": "npx hardhat run test-testnet-functions.js --network bscTestnet",
+    "test:mumbai": "npx hardhat run test-testnet-functions.js --network mumbai",
+    "test:all": "npm run test:zeta && npm run test:sepolia && npm run test:bsc && npm run test:mumbai",
+    "check": "npx hardhat run check-setup.js --network zetachainAthens",
+    "setup": "npx hardhat run deploy-and-setup.js --network zetachainAthens",
+    "demo": "node deploy-local.js",
+    "test": "npx hardhat test test_revert_resilience.js --network zetachainAthens",
+    "serve": "python3 -m http.server 8000 --bind 0.0.0.0",
+    "start": "npm run serve"
+  },
+  "keywords": [
+    "zetachain",
+    "universal-app",
+    "gateway",
+    "defi",
+    "portfolio-tracker",
+    "universal-nft",
+    "cross-chain",
+    "solana",
+    "sui",
+    "ton"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.0"
+  },
+  "dependencies": {
+    "@zetachain/protocol-contracts": "^11.0.0-rc1",
+    "@openzeppelin/contracts": "^5.0.0",
+    "dotenv": "^16.0.0"
+  }
+}
