@@ -3,218 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZetaChain Universal Portfolio Tracker</title>
+    <title>ZetaChain Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p id="loadingText">Processing...</p>
+    </div>
+
     <div class="container">
-        <header>
-            <h1>🌐 ZetaChain Universal Portfolio Tracker</h1>
-            <p>Universal App with Cross-Chain NFT Rewards</p>
-            <div class="universal-app-badge">
-                <span class="badge-icon">⚡</span>
-                <div class="badge-text">
-                    <strong>Universal App</strong>
-                    <span>Gateway Integration • onCall • onRevert • onAbort</span>
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">ZetaChain Portfolio</h1>
+                <div class="protection-badge">
+                    🛡️ Standard Protection Active
                 </div>
+            </div>
+            <button id="connectWallet" class="btn-connect">Connect Wallet</button>
+            <div id="walletInfo" class="wallet-info hidden">
+                <div class="wallet-address" id="walletAddress"></div>
+                <div class="wallet-balance" id="walletBalance"></div>
             </div>
         </header>
 
-        <div class="wallet-section">
-            <button id="connectWallet" class="btn-primary">Connect Wallet</button>
-            <div id="walletInfo" class="wallet-info hidden">
-                <span id="walletAddress"></span>
-                <span id="walletBalance"></span>
-            </div>
-        </div>
-
-        <!-- ============ UNIVERSAL APP FEATURES (BOUNTY #1) ============ -->
-        <div class="universal-app-section">
-            <h2>⚡ Universal App Features</h2>
-            <div class="features-grid">
-                <div class="feature-card oncall">
-                    <div class="feature-icon">✅</div>
-                    <h3>onCall()</h3>
-                    <p>Successful cross-chain withdrawals processed automatically</p>
-                    <div class="feature-status">Active</div>
-                </div>
-                <div class="feature-card onrevert">
-                    <div class="feature-icon">🔄</div>
-                    <h3>onRevert()</h3>
-                    <p>100% automatic refunds when transactions fail</p>
-                    <div class="feature-status">Active</div>
-                </div>
-                <div class="feature-card onabort">
-                    <div class="feature-icon">🛡️</div>
-                    <h3>onAbort()</h3>
-                    <p>Immediate refunds for aborted transactions</p>
-                    <div class="feature-status">Active</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="main-content">
-            <!-- Deposit Section -->
+        <!-- Main Dashboard -->
+        <div class="dashboard">
+            <!-- Portfolio Card -->
             <div class="card">
-                <h2>💰 Deposit ZETA</h2>
-                <p class="card-description">Create a position by depositing ZETA tokens</p>
-                <div class="form-group">
-                    <label>Amount (ZETA)</label>
-                    <input type="number" id="depositAmount" placeholder="0.1" step="0.001" min="0.001">
-                </div>
-                <button id="depositBtn" class="btn-primary" disabled>Deposit & Create Position</button>
-            </div>
-
-            <!-- Positions Section -->
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2>📊 My Positions</h2>
-                    <button id="refreshPositions" class="btn-secondary" style="padding: 8px 16px; font-size: 14px;">🔄 Refresh</button>
-                </div>
-                <div class="stats-row">
-                    <div class="stat-item">
+                <h2 class="card-title">Portfolio Management</h2>
+                
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-box">
                         <span class="stat-label">Active Positions</span>
-                        <span id="positionCount" class="stat-value">0</span>
+                        <span class="stat-value" id="positionCount">0</span>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-box">
                         <span class="stat-label">Total Value</span>
-                        <span id="totalDeposited" class="stat-value">0 ZETA</span>
+                        <span class="stat-value" id="totalDeposited">0 ZETA</span>
                     </div>
                 </div>
-                <div id="positionsContainer">
-                    <p class="no-positions">No positions yet. Deposit ZETA to get started.</p>
+
+                <!-- Create Position -->
+                <div class="section">
+                    <h3 class="section-title">Create Position</h3>
+                    <div class="input-group">
+                        <label>Amount (ZETA)</label>
+                        <input type="number" id="depositAmount" placeholder="0.1" step="0.001" min="0.001">
+                    </div>
+                    <button id="depositBtn" class="btn-primary" disabled>
+                        <span class="btn-text">Deposit & Create</span>
+                        <span class="btn-spinner hidden"></span>
+                    </button>
+                </div>
+
+                <!-- Positions List -->
+                <div class="section">
+                    <div class="section-header">
+                        <h3 class="section-title">My Positions</h3>
+                        <button id="refreshPositions" class="btn-icon">🔄</button>
+                    </div>
+                    <div id="positionsContainer" class="positions-list">
+                        <p class="empty-state">No positions yet. Create your first position above.</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Withdraw Section -->
+            <!-- Withdraw Card -->
             <div class="card">
-                <h2>🌐 Cross-Chain Withdraw</h2>
-                <p class="card-description">Withdraw to any chain with automatic refund protection</p>
-                <div class="form-group">
+                <h2 class="card-title">Cross-Chain Withdraw</h2>
+                
+                <div class="input-group">
                     <label>Select Position</label>
                     <select id="positionSelect" disabled>
-                        <option value="">Choose a position to withdraw</option>
+                        <option value="">Choose a position</option>
                     </select>
                 </div>
-                <div class="form-group">
+
+                <div class="input-group">
                     <label>Destination Chain</label>
                     <select id="destinationChain">
-                        <optgroup label="EVM Chains">
-                            <option value="11155111">Ethereum Sepolia</option>
-                            <option value="97">BSC Testnet</option>
-                            <option value="80001">Polygon Mumbai</option>
-                        </optgroup>
-                        <optgroup label="Non-EVM Chains">
-                            <option value="18000001">Solana Devnet</option>
-                            <option value="18000002">Sui Testnet</option>
-                            <option value="18000003">TON Testnet</option>
-                        </optgroup>
+                        <option value="1">Ethereum Mainnet</option>
+                        <option value="56">BSC Mainnet</option>
+                        <option value="137">Polygon Mainnet</option>
                     </select>
                 </div>
-                <div class="form-group">
+
+                <div class="input-group">
                     <label>Recipient Address</label>
-                    <input type="text" id="destinationAddress" placeholder="Enter destination address">
+                    <input type="text" id="destinationAddress" placeholder="0x...">
                 </div>
-                <div class="form-group">
-                    <label>Gas Limit <span class="hint">(≥150000 for success, <150000 to test revert)</span></label>
+
+                <div class="input-group">
+                    <label>Gas Limit <span class="hint">(≥150000 recommended)</span></label>
                     <input type="number" id="gasLimit" value="200000" min="100000">
                 </div>
-                <div class="gas-estimation">
+
+                <div class="gas-info">
                     <div class="gas-row">
                         <span>Base Gas:</span>
-                        <span id="gasEstimate" class="gas-value">-</span>
+                        <span id="gasEstimate">-</span>
                     </div>
-                    <div class="gas-row">
-                        <span>With 30% Safety Buffer:</span>
-                        <span id="gasPremium" class="gas-value highlight">-</span>
+                    <div class="gas-row highlight">
+                        <span>With 30% Buffer:</span>
+                        <span id="gasPremium">-</span>
                     </div>
                 </div>
-                <button id="withdrawBtn" class="btn-secondary" disabled>Withdraw Cross-Chain</button>
+
+                <button id="withdrawBtn" class="btn-secondary" disabled>
+                    <span class="btn-text">Withdraw Cross-Chain</span>
+                    <span class="btn-spinner hidden"></span>
+                </button>
             </div>
         </div>
 
-        <!-- NFT Rewards Section -->
-        <div class="nft-section">
-            <h2>🎨 Universal NFT Badge</h2>
-            <div class="nft-container">
-                <div class="nft-visual">
-                    <div id="badgeVisual" class="badge-locked">
-                        <img src="badge.svg" alt="Safety Badge" class="badge-image">
-                        <div id="badgeStatusText" class="badge-status-text">Locked</div>
+        <!-- Genesis Tier Section -->
+        <div class="genesis-card">
+            <div class="genesis-header">
+                <h2 class="genesis-title">Genesis Tier Eligibility</h2>
+                <span class="limited-badge">Limited Time</span>
+            </div>
+            
+            <div class="genesis-content">
+                <div class="genesis-visual">
+                    <div id="badgeVisual" class="badge-container locked">
+                        <img src="https://gateway.pinata.cloud/ipfs/bafybeicgcronmtdf4nepgug7oggzxbrjkftyu3krmtgnqn35r2bqnpawtq" alt="Genesis Badge" class="badge-image">
+                        <div class="badge-status" id="badgeStatusText">Locked</div>
                     </div>
-                    <div id="badgeEligibility" class="eligibility-status">
+                    <div id="badgeEligibility" class="eligibility-badge locked">
                         ❌ Not Eligible
                     </div>
                 </div>
-                <div class="nft-actions">
-                    <p id="badgeDescription" class="nft-description">Use the safety buffer to unlock your Universal NFT badge</p>
-                    <button id="mintBadgeBtn" class="btn-nft" disabled>Mint Safety Badge</button>
-                    <div class="nft-transfer">
-                        <select id="transferChain" disabled>
-                            <option value="">Transfer to...</option>
-                            <option value="11155111">Ethereum</option>
-                            <option value="97">BSC</option>
-                            <option value="80001">Polygon</option>
-                            <option value="18000001">Solana</option>
-                            <option value="18000002">Sui</option>
-                            <option value="18000003">TON</option>
-                        </select>
-                        <button id="transferBadgeBtn" class="btn-transfer" disabled>Transfer</button>
+                
+                <div class="genesis-info">
+                    <p class="genesis-description" id="badgeDescription">
+                        Execute one safe cross-chain withdrawal to unlock your Genesis Badge.
+                    </p>
+                    
+                    <button id="mintBadgeBtn" class="btn-genesis" disabled>
+                        <span class="btn-text">Mint Genesis Badge</span>
+                        <span class="btn-spinner hidden"></span>
+                    </button>
+
+                    <div class="transfer-section hidden" id="transferSection">
+                        <label>Transfer Badge</label>
+                        <div class="transfer-controls">
+                            <select id="transferChain" disabled>
+                                <option value="">Select chain...</option>
+                                <option value="1">Ethereum</option>
+                                <option value="56">BSC</option>
+                                <option value="137">Polygon</option>
+                            </select>
+                            <button id="transferBadgeBtn" class="btn-transfer" disabled>Transfer</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Transaction History -->
-        <div class="history-section">
-            <h3>📜 Recent Activity</h3>
-            <div id="statusContainer">
-                <p class="no-positions">No transactions yet</p>
+        <!-- Activity Log -->
+        <div class="card activity-card">
+            <h3 class="card-title">Recent Activity</h3>
+            <div id="statusContainer" class="activity-list">
+                <p class="empty-state">No transactions yet</p>
             </div>
         </div>
-
-        <!-- ============ ATTRIBUTION FOOTER (BOUNTY #3 REQUIREMENT) ============ -->
-        <footer class="attribution-footer">
-            <div class="attribution-content">
-                <div class="attribution-badge">
-                    <span class="ai-icon">🤖</span>
-                    <span class="powered-by">Powered by</span>
-                </div>
-                <div class="attribution-text">
-                    <strong>Amazon Q</strong>
-                    <p>Volatility Premium Algorithm & Architecture Generated by Amazon Q</p>
-                </div>
-            </div>
-            <div class="bounty-info">
-                <span class="bounty-tag bounty-1">Bounty #1: Universal App ($2,000 ZETA)</span>
-                <span class="bounty-tag">Bounty #2: Universal AI App</span>
-                <span class="bounty-tag">Bounty #3: Multi-Sponsor App</span>
-            </div>
-        </footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" 
-            onerror="loadEthersFallback()"></script>
-    <script>
-        function loadEthersFallback() {
-            console.log('Loading ethers.js from fallback CDN...');
-            const script = document.createElement('script');
-            script.src = 'https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js';
-            script.onload = () => console.log('Ethers.js loaded from fallback');
-            script.onerror = () => {
-                alert('Failed to load ethers.js. Please check your internet connection.');
-            };
-            document.head.appendChild(script);
-        }
-        
-        function checkEthers() {
-            if (typeof ethers !== 'undefined') {
-                console.log('Ethers.js loaded successfully');
-                return true;
-            }
-            return false;
-        }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

@@ -5,6 +5,7 @@
   "main": "index.html",
   "scripts": {
     "deploy": "npx hardhat run deploy.js --network zetachainAthens",
+    "deploy:mainnet": "npx hardhat --config hardhat.config.mainnet.js run deploy-mainnet.js --network zeta_mainnet",
     "deploy:zeta": "npx hardhat run deploy-testnet.js --network zetachainAthens",
     "deploy:universal": "npx hardhat run deploy-universal.js --network zetachainAthens",
     "deploy:universal:sepolia": "npx hardhat run deploy-universal.js --network sepolia",

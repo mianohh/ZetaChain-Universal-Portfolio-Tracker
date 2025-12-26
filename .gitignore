@@ -1,8 +1,39 @@
+# Dependencies
 node_modules/
+package-lock.json
+
+# Environment Variables (CRITICAL - NEVER PUSH)
 .env
+.env.local
+.env.production
+
+# Hardhat
 cache/
 artifacts/
 deployments/
-*.swp
+
+# Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
 .DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Build
+dist/
+build/
+
+# Temporary
+*.tmp
+.cache/

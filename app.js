@@ -9,8 +9,8 @@ class PortfolioTracker {
         this.contract = null;
         this.userAddress = null;
         
-        // Contract configuration - AUTO-UPDATED FROM DEPLOYMENT
-        this.CONTRACT_ADDRESS = "0x2398C02218e5aa5b759f511F3DD56283fDBb5497"; // AUTO-GENERATED - DO NOT EDIT MANUALLY
+        // TODO: Update this with the new Mainnet address after deployment
+        this.CONTRACT_ADDRESS = "0x17Bc5d06c9e2B3593706d5Ed59f7D47E23959aCC";
         this.GATEWAY_ADDRESS = "0x6c533f7fe93fae114d0954697069df33c9b74fd7";
         
         // Extended ABI with Universal NFT functions
@@ -145,7 +145,7 @@ class PortfolioTracker {
         try {
             await window.ethereum.request({
                 method: 'wallet_switchEthereumChain',
-                params: [{ chainId: '0x1b59' }],
+                params: [{ chainId: '0x1b58' }],
             });
         } catch (switchError) {
             if (switchError.code === 4902) {
@@ -153,15 +153,15 @@ class PortfolioTracker {
                     await window.ethereum.request({
                         method: 'wallet_addEthereumChain',
                         params: [{
-                            chainId: '0x1b59',
-                            chainName: 'ZetaChain Athens Testnet',
+                            chainId: '0x1b58',
+                            chainName: 'ZetaChain Mainnet Beta',
                             nativeCurrency: {
                                 name: 'ZETA',
                                 symbol: 'ZETA',
                                 decimals: 18
                             },
-                            rpcUrls: ['https://zetachain-athens-evm.blockpi.network/v1/rpc/public'],
-                            blockExplorerUrls: ['https://athens3.explorer.zetachain.com/']
+                            rpcUrls: ['https://zetachain-evm.blockpi.network/v1/rpc/public'],
+                            blockExplorerUrls: ['https://zetachain.blockscout.com/']
                         }]
                     });
                 } catch (addError) {
@@ -200,8 +200,8 @@ class PortfolioTracker {
             
             // Check network
             const network = await this.provider.getNetwork();
-            if (network.chainId !== 7001) {
-                this.showError('Wrong network! Please switch to ZetaChain Athens Testnet (Chain ID: 7001)');
+            if (network.chainId !== 7000) {
+                this.showError('Wrong network! Please switch to ZetaChain Mainnet (Chain ID: 7000)');
                 return;
             }
             
@@ -215,7 +215,7 @@ class PortfolioTracker {
             
             const tx = await this.contract.deposit(amountWei, { 
                 value: amountWei,
-                gasLimit: 300000 // Explicit gas limit
+                gasLimit: 500000
             });
             
             console.log('Transaction sent:', tx.hash);
@@ -411,7 +411,7 @@ class PortfolioTracker {
                 destinationChain,
                 destinationAddress,
                 gasLimit,
-                { value: gasFee }
+                { value: gasFee, gasLimit: 500000 }
             );
             
             await tx.wait();
@@ -573,9 +573,9 @@ class PortfolioTracker {
             await tx.wait();
             
             const chainNames = { 
-                '11155111': 'Ethereum Sepolia', 
-                '97': 'BSC Testnet', 
-                '80001': 'Polygon Mumbai',
+                '1': 'Ethereum Mainnet', 
+                '56': 'BSC Mainnet', 
+                '137': 'Polygon Mainnet',
                 '18000001': 'Solana Devnet',
                 '18000002': 'Sui Testnet',
                 '18000003': 'TON Testnet'
@@ -629,32 +629,43 @@ class PortfolioTracker {
     }
     
     showLoading(message) {
-        document.body.classList.add('loading');
+        const overlay = document.getElementById('loadingOverlay');
+        const text = document.getElementById('loadingText');
+        if (overlay && text) {
+            text.textContent = message;
+            overlay.classList.remove('hidden');
+        }
     }
     
     hideLoading() {
-        document.body.classList.remove('loading');
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.classList.add('hidden');
+        }
     }
     
     showSuccess(message) {
-        this.showMessage(message, 'success');
+        this.showToast(message, 'success');
     }
     
     showError(message) {
-        this.showMessage(message, 'error');
+        this.showToast(message, 'error');
     }
     
-    showMessage(message, type) {
-        const existing = document.querySelector('.message');
-        if (existing) existing.remove();
+    showToast(message, type) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
         
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${type}`;
-        messageDiv.textContent = message;
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<div class="toast-message">${message}</div>`;
         
-        document.querySelector('.container').insertBefore(messageDiv, document.querySelector('.main-content'));
+        container.appendChild(toast);
         
-        setTimeout(() => messageDiv.remove(), 5000);
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
     }
 }
 
