@@ -497,6 +497,20 @@ class PortfolioTracker {
      */
     async mintSafetyBadge() {
         try {
+            // Double-check eligibility before minting
+            const badgeTokenId = await this.contract.getUserBadge(this.userAddress);
+            if (badgeTokenId.toNumber() > 0) {
+                this.showError('You have already minted your badge!');
+                await this.checkBadgeEligibility();
+                return;
+            }
+            
+            const isEligible = await this.contract.isEligibleForBadge(this.userAddress);
+            if (!isEligible) {
+                this.showError('Not eligible yet. Complete a withdrawal first.');
+                return;
+            }
+            
             this.showLoading('Minting your Universal Safety Badge NFT...');
             
             const tx = await this.contract.mintSafetyBadge();
@@ -512,7 +526,12 @@ class PortfolioTracker {
             
         } catch (error) {
             console.error('Error minting badge:', error);
-            this.showError('Failed to mint badge: ' + error.message);
+            if (error.message.includes('Badge already minted')) {
+                this.showError('Badge already minted! Check your wallet.');
+                await this.checkBadgeEligibility();
+            } else {
+                this.showError('Failed to mint badge: ' + error.message);
+            }
         } finally {
             this.hideLoading();
         }
