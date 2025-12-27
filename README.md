@@ -4,11 +4,12 @@ A cross-chain DeFi portfolio tracker and safety dashboard built on ZetaChain. Th
 
 ## 🛡️ Core Features
 
-* **Genesis Tier Badges**: Exclusive "Proof of Protection" NFTs for early mainnet users.
+* **Genesis Tier Badges**: Exclusive "Proof of Protection" NFTs for early mainnet users with automatic image download.
 * **Standard Protection**: 30% static gas buffer ensuring safe cross-chain withdrawals on public infrastructure.
 * **Revert Resilience**: Automatic refund mechanism if cross-chain calls fail due to extreme volatility.
 * **Omnichain Dashboard**: Track and manage positions across ZetaChain, Ethereum, BSC, and Polygon from a single interface.
 * **Universal NFT**: Mint your Genesis Badge once on ZetaChain and transfer it to any supported chain.
+* **Auto-Download**: NFT badge image automatically downloads to your device upon minting.
 
 > **Note:** This Lite version operates on public RPC infrastructure. The **Volatility Armor** upgrade (Real-time dynamic buffering via Goldsky) is scheduled for a future release.
 
@@ -64,6 +65,7 @@ Execute a cross-chain withdrawal to any connected network.
 After your first successful safe withdrawal, you unlock eligibility for the **Genesis Safety Badge**.
 
 * **Utility:** This badge proves your early adoption and serves as the "Key" for future premium features.
+* **Auto-Download:** The NFT image automatically downloads to your device upon minting.
 
 ### 5. Cross-Chain Transfer
 
@@ -136,6 +138,7 @@ npm run check
 
 * **Status**: "Standard Protection" mode active.
 * **Theme**: Production dark mode (#0a0b0d) with Genesis Gold accents.
+* **Auto-Download**: NFT images download automatically upon minting.
 
 ## 📦 Dependencies
 
